@@ -1,2 +1,4 @@
 module.exports =
-  Builder: require "./builder"
+  SourceBuilder: require "./sourceBuilder"
+  TestBuilder: require "./test/testBuilder"
+
