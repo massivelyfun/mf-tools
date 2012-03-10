@@ -54,15 +54,16 @@ class Builder
             do (dir) =>
               glob "#{dir}/**/*.js", {}, (er, files) =>
                 for file in files
-                  reg = ///
-                    ^#{dir}\/
-                  ///
-                  filePathSansInputDir = path.relative(@_projectRoot, file).replace(reg, "")
-                  pathToCreate = path.join(libraryOutputDir, path.dirname(filePathSansInputDir))
-                  console.log "Ensuring directory exists: #{pathToCreate}"
-                  run "mkdir -p #{pathToCreate}", (err, stdout, stderr) =>
-                    console.log "Copying JS file from CS source: #{filePathSansInputDir}"
-                    run "cp #{file} #{path.join(libraryOutputDir, filePathSansInputDir)}"
+                  do (file) =>
+                    reg = ///
+                      ^#{dir}\/
+                    ///
+                    filePathSansInputDir = path.relative(@_projectRoot, file).replace(reg, "")
+                    pathToCreate = path.join(libraryOutputDir, path.dirname(filePathSansInputDir))
+                    console.log "Ensuring directory exists: #{pathToCreate}"
+                    run "mkdir -p #{pathToCreate}", (err, stdout, stderr) =>
+                      console.log "Copying JS file from CS source: #{filePathSansInputDir}"
+                      run "cp #{file} #{path.join(libraryOutputDir, filePathSansInputDir)}"
 
       else
         console.log "No output dir, or no sources to build. Output dir: #{@_absoluteOutputDir}; Input dirs: #{@_absoluteInputDirs} for build: #{@_buildName}"
