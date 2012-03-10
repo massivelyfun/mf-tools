@@ -34,8 +34,9 @@ class Builder
   inputDirs: (dirs...) ->
     @_absoluteInputDirs = []
     for dir in dirs
-      @_inputDirs.push dir
-      @_absoluteInputDirs.push path.join(@_projectRoot, dir)
+      do (dir) =>
+        @_inputDirs.push dir
+        @_absoluteInputDirs.push path.join(@_projectRoot, dir)
     @
   build: ->
     unless @_libName
@@ -48,22 +49,26 @@ class Builder
       srcDirsToInclude = (dir for dir in @_absoluteInputDirs when path.existsSync(dir))
       console.log "Input dirs for compilation: #{srcDirsToInclude}"
       if path.existsSync(libraryOutputDir) and srcDirsToInclude.length > 0
-        run "coffee -o #{libraryOutputDir} -c #{srcDirsToInclude.join(" ")}", (err, stdout, stderr) =>
-          # Then, copy .js files from each of the input dirs, and overlay them appropriately on the output
-          for dir in @_inputDirs
-            do (dir) =>
-              glob "#{dir}/**/*.js", {}, (er, files) =>
-                for file in files
-                  do (file) =>
-                    reg = ///
-                      ^#{dir}\/
-                    ///
-                    filePathSansInputDir = path.relative(@_projectRoot, file).replace(reg, "")
-                    pathToCreate = path.join(libraryOutputDir, path.dirname(filePathSansInputDir))
-                    console.log "Ensuring directory exists: #{pathToCreate}"
-                    run "mkdir -p #{pathToCreate}", (err, stdout, stderr) =>
-                      console.log "Copying JS file from CS source: #{filePathSansInputDir}"
-                      run "cp #{file} #{path.join(libraryOutputDir, filePathSansInputDir)}"
+
+        for coffeeSourceDir in srcDirsToInclude
+          do(coffeeSourceDir) =>
+            console.log "coffee -o #{libraryOutputDir} -c #{coffeeSourceDir}"
+            run "coffee -o #{libraryOutputDir} -c #{coffeeSourceDir}", (err, stdout, stderr) =>
+              # Then, copy .js files from each of the input dirs, and overlay them appropriately on the output
+              for dir in @_inputDirs
+                do (dir) =>
+                  glob "#{dir}/**/*.js", {}, (er, files) =>
+                    for file in files
+                      do (file) =>
+                        reg = ///
+                          ^#{dir}\/
+                        ///
+                        filePathSansInputDir = path.relative(@_projectRoot, file).replace(reg, "")
+                        pathToCreate = path.join(libraryOutputDir, path.dirname(filePathSansInputDir))
+                        console.log "Ensuring directory exists: #{pathToCreate}"
+                        run "mkdir -p #{pathToCreate}", (err, stdout, stderr) =>
+                          console.log "Copying JS file from CS source: #{filePathSansInputDir}"
+                          run "cp #{file} #{path.join(libraryOutputDir, filePathSansInputDir)}"
 
       else
         console.log "No output dir, or no sources to build. Output dir: #{@_absoluteOutputDir}; Input dirs: #{@_absoluteInputDirs} for build: #{@_buildName}"
