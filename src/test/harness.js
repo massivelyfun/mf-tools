@@ -4,7 +4,7 @@ var path = require('path'),
 
 
 harness = {};
-helpers = ["group", "import", "image", "page", "server"]
+helpers = ["group", "import", "image", "page", "server", "dom"]
 
 for(var i = 0; i < helpers.length; i++){
   helper = helpers[i];
