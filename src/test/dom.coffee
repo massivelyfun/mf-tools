@@ -15,9 +15,12 @@ dom = (html, cb) ->
       extend(el, new Canvas()) if tagName == 'canvas'
       el
 
+    _window = global.window
+    global.window   = window
     global.document = doc
     cb()
     global.document = _document
+    global.window   = _window
 
 module.exports.dom = dom
 
