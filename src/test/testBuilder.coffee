@@ -1,15 +1,28 @@
 {exec} = require "child_process"
 path = require "path"
 util = require "util"
+_harnessMod = path.join(__dirname, "harness.js")
 class TestBuilder
   constructor: ->
     @_includePaths = []
     @_testDefinitions = {}
     @_mochaReporter = process.env.MOCHA_REPORTER || 'spec'
     @_mochaUi = process.env.MOCHA_UI || 'tdd'
-    @_harnessDir = path.join(__dirname, "harness.js") # Harness.js file out of the current dir
+    @_harnessMod = path.join(__dirname, "harness.js") # Harness.js file out of the current dir
     @_retVal = 0
+    @_preRequire = undefined
   # Pass in the handle for that Cakefile's task function
+
+  @harnessModule: ->
+    _harnessMod
+
+  harnessModule: @harnessModule
+
+  preRequire: (mod) ->
+    @_preRequire = mod
+    @
+  _mochaPreRequire: ->
+    @_preRequire ? _harnessMod
 
   task: (@_task) ->
     @
@@ -38,7 +51,7 @@ class TestBuilder
           invoke "test:#{t}"
     @
   _testCmd: ->
-    "NODE_PATH=$NODE_PATH:#{@_includePaths.join ':'} mocha --globals window,document -u #{@_mochaUi} -R #{@_mochaReporter} --require #{@_harnessDir}"
+    "NODE_PATH=$NODE_PATH:#{@_includePaths.join ':'} mocha --globals window,document -u #{@_mochaUi} -R #{@_mochaReporter} --require #{@_mochaPreRequire()}"
 
   _runTests: (glob, msg) ->
     exec "#{@_testCmd()} #{glob}",

@@ -1,14 +1,9 @@
 spawn = require("child_process").spawn
 path = require "path"
 
-
-appRoot = "#{__dirname}/../../"
-relativePath = (path) ->
-  "#{appRoot}/#{path}"
-
 servers = {}
 server = {}
-server.launch = (port, connect, timeout, exitCb) ->
+server.launch = (appMagic, serverScript, port, connect, timeout, exitCb) ->
   return servers[port] if servers[port]
 
   if typeof timeout == 'function'
@@ -24,15 +19,15 @@ server.launch = (port, connect, timeout, exitCb) ->
   started = false
   connected = false
   completed = false
-    
-  serverProc = spawn "node", ['server.js', '-p', testPort], 
-    cwd: path.normalize(appRoot)
-    env: process.env
+
+  serverProc = spawn "node", [serverScript, '-p', testPort],
+    cwd: appMagic.appRoot()
+    env: appMagic.appEnv()
     setsid: false
-  
+
   # serverProc.stdout.on 'data', (data) ->
   #   console.log 'OUT: ', data.toString 'utf8'
-  #       
+  #
   # serverProc.stderr.on 'data', (data) ->
   #   console.log 'ERR: ', data.toString 'utf8'
 
@@ -41,7 +36,7 @@ server.launch = (port, connect, timeout, exitCb) ->
     serverProc.stderr.on 'data', (data) ->
       started = true
       connected = connect() unless connected
-      
+
   serverProc.on 'exit', (code) ->
     completed = true
     exitCb?(code)
@@ -50,13 +45,13 @@ server.launch = (port, connect, timeout, exitCb) ->
     if started
       server.kill(testPort)
   , timeout || 5000
-  
+
   servers[port] = serverProc
-  
+
   server
-  
+
 server.kill = (port) ->
-  if (servers[port]) 
+  if (servers[port])
     clearTimeout servers[port].timeOut
     servers[port].kill('SIGTERM')
     delete servers[port]
