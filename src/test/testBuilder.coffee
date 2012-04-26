@@ -23,7 +23,7 @@ class TestBuilder
     @
   _mochaPreRequire: ->
     @_preRequire ? _harnessMod
-
+  nodeEnv: (@_env) ->
   task: (@_task) ->
     @
   # Paths to be included in the test process before running the test.
@@ -54,8 +54,11 @@ class TestBuilder
     "NODE_PATH=$NODE_PATH:#{@_includePaths.join ':'} mocha --globals window,document -u #{@_mochaUi} -R #{@_mochaReporter} --require #{@_mochaPreRequire()}"
 
   _runTests: (glob, msg) ->
+    childEnv = {}
+    childEnv[k] = v for k,v of process.env
+    childEnv["NODE_ENV"] ?= (@_env ? "test")
     exec "#{@_testCmd()} #{glob}",
-      env: process.env
+      env: childEnv
       encoding: 'utf8'
     , (err, stdout, stderr) ->
       # console.log "\n#{msg}\n==========================="
