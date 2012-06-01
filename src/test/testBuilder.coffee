@@ -60,7 +60,7 @@ class TestBuilder
     exec "#{@_testCmd()} #{glob}",
       env: childEnv
       encoding: 'utf8'
-    , (err, stdout, stderr) ->
+    , (err, stdout, stderr) =>
       # console.log "\n#{msg}\n==========================="
       util.puts stdout  # verbiage
       console.log stderr  # test summary
