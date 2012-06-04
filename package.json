@@ -3,7 +3,7 @@
   "author": "Mason Browne <mason@massivelyfun.com> (http://massivelyfun.com/people/maseb)",
   "name": "mf-tools",
   "description": "Build and test tools.",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "homepage": "http://massivelyfun.com/projects/mf-tools",
   "repository": {
     "type": "git",
@@ -21,6 +21,7 @@
     "mocha": "= 0.10.1",
     "chai": "= 0.3.3",
     "jsdom": "= 0.2.10",
+	"glob": "= 3.1.5",
     "phantom": "= 0.3.3"
   },
   "optionalDependencies": {}

@@ -1,6 +1,9 @@
 {exec} = require "child_process"
 path = require "path"
 util = require "util"
+fs   = require 'fs'
+glob = require 'glob'
+
 _harnessMod = path.join(__dirname, "harness.js")
 class TestBuilder
   constructor: ->
@@ -39,8 +42,8 @@ class TestBuilder
     unless @_task
       "TestBuilder requires task function to define tasks."
 
-    for test, glob of @_testDefinitions
-      @_addTestTask test, glob
+    for test, testGlob of @_testDefinitions
+      @_addTestTask test, testGlob
 
 
     @_task "test", "Run all tests", =>
@@ -53,20 +56,27 @@ class TestBuilder
   _testCmd: ->
     "NODE_PATH=$NODE_PATH:#{@_includePaths.join ':'} mocha --globals window,document -u #{@_mochaUi} -R #{@_mochaReporter} --require #{@_mochaPreRequire()}"
 
-  _runTests: (glob, msg) ->
+  # Run our test.  If we're running in xunit output mode, we want to write each test file's
+  # output to a separate file, so that xunit doesn't freak out.
+  _runTests: (testGlob, msg) ->
     childEnv = {}
     childEnv[k] = v for k,v of process.env
     childEnv["NODE_ENV"] ?= (@_env ? "test")
-    exec "#{@_testCmd()} #{glob}",
-      env: childEnv
-      encoding: 'utf8'
-    , (err, stdout, stderr) =>
-      # console.log "\n#{msg}\n==========================="
-      util.puts stdout  # verbiage
-      console.log stderr  # test summary
-
-      @_retVal = 1 if err != null
-
+    glob testGlob, (err, files) =>
+      for file in files
+        child = exec "#{@_testCmd()} #{file}",
+          env: childEnv
+          encoding: 'utf8'
+        , (err, stdout, stderr) =>
+          # console.log "\n#{msg}\n==========================="
+          util.puts stdout  # verbiage
+          console.log stderr  # test summary
+        @_retVal = 1 if err != null
+        if @_mochaReporter == 'xunit'
+          fs.mkdirSync('reports') unless fs.readdirSync('.').indexOf('reports') >= 0
+          outFile = fs.createWriteStream "reports/#{file.replace(/^.*[\\\/]/, '')}.xml", { flags : 'w' }
+          child.stdout.pipe(outFile)
+          
   _addTestTask: (name, dir) ->
     taskName = "test:#{name}"
 
