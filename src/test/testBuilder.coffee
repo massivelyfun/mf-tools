@@ -10,7 +10,7 @@ class TestBuilder
     @_testDefinitions = {}
     @_mochaReporter = process.env.MOCHA_REPORTER || 'spec'
     @_mochaUi = process.env.MOCHA_UI || 'tdd'
-    @_harnessMod = path.join('src', 'test', "harness.js") # Harness.js file out of the current dir
+    @_harnessMod = "harness.js" # Harness.js file out of the current dir
     @_retVal = 0
     @_preRequire = undefined
   # Pass in the handle for that Cakefile's task function
@@ -24,13 +24,20 @@ class TestBuilder
     @_preRequire = mod
     @
   _mochaPreRequire: ->
-    @_preRequire ? @_harnessMod
+    if @_preRequire
+      @_preRequire
+    else
+      p = path.join('lib', 'mf-tools', 'test', @_harnessMod)
+      # Slight(?) path hack for local tests, since newer versions of 
+      # Mocha attempt to make require paths absolute all by themselves
+      if require.main.filename.indexOf('mf-tools') < 0 then path.join('mf-tools', p) else p
+
   nodeEnv: (@_env) ->
   task: (@_task) ->
     @
   # Paths to be included in the test process before running the test.
   includePaths: (paths...) ->
-    @_includePaths.push path for path in paths
+    @_includePaths.push p for p in paths
     @
   # Test definitions:
   # tests =
