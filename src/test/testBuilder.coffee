@@ -28,8 +28,24 @@ class TestBuilder
       @_preRequire
     else
       p = path.join('lib', 'mf-tools', 'test', @_harnessMod)
-      # Slight(?) path hack for local tests, since newer versions of 
-      # Mocha attempt to make require paths absolute all by themselves
+      #
+      # Mocha 1.6 has this:
+      # 
+      # program.on('require', function(mod){
+      #   var abs = exists(mod)
+      #     || exists(mod + '.js');
+
+      #   if (abs) mod = join(cwd, mod);
+      #   require(mod);
+      # });
+      # 
+      # Because of this, we can no longer specify absolute paths to modules when passing them
+      # to Mocha via -r below.  Instead, we look at the path of the main script - if it includes
+      # mf-tools, we're running local tests for the mf-tools module.  If it doesn't, we're running
+      # out of node_modules (though __dirname may not reflect this in the npm link'd case). Set the
+      # require path appropriately.
+      # 
+      # TODO: remove this when Mocha is sane again.
       if require.main.filename.indexOf('mf-tools') < 0 then path.join('mf-tools', p) else p
 
   nodeEnv: (@_env) ->
