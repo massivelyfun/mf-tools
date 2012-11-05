@@ -4,20 +4,19 @@ util = require "util"
 fs   = require 'fs'
 glob = require 'glob'
 
-_harnessMod = path.join(__dirname, "harness.js")
 class TestBuilder
   constructor: ->
     @_includePaths = []
     @_testDefinitions = {}
     @_mochaReporter = process.env.MOCHA_REPORTER || 'spec'
     @_mochaUi = process.env.MOCHA_UI || 'tdd'
-    @_harnessMod = path.join(__dirname, "harness.js") # Harness.js file out of the current dir
+    @_harnessMod = "harness.js" # Harness.js file out of the current dir
     @_retVal = 0
     @_preRequire = undefined
   # Pass in the handle for that Cakefile's task function
 
   @harnessModule: ->
-    _harnessMod
+    @_harnessMod
 
   harnessModule: @harnessModule
 
@@ -25,13 +24,36 @@ class TestBuilder
     @_preRequire = mod
     @
   _mochaPreRequire: ->
-    @_preRequire ? _harnessMod
+    if @_preRequire
+      @_preRequire
+    else
+      p = path.join('lib', 'mf-tools', 'test', @_harnessMod)
+      #
+      # Mocha 1.6 has this:
+      # 
+      # program.on('require', function(mod){
+      #   var abs = exists(mod)
+      #     || exists(mod + '.js');
+
+      #   if (abs) mod = join(cwd, mod);
+      #   require(mod);
+      # });
+      # 
+      # Because of this, we can no longer specify absolute paths to modules when passing them
+      # to Mocha via -r below.  Instead, we look at the path of the main script - if it includes
+      # mf-tools, we're running local tests for the mf-tools module.  If it doesn't, we're running
+      # out of node_modules (though __dirname may not reflect this in the npm link'd case). Set the
+      # require path appropriately.
+      # 
+      # TODO: remove this when Mocha is sane again.
+      if require.main.filename.indexOf('mf-tools') < 0 then path.join('mf-tools', p) else p
+
   nodeEnv: (@_env) ->
   task: (@_task) ->
     @
   # Paths to be included in the test process before running the test.
   includePaths: (paths...) ->
-    @_includePaths.push path for path in paths
+    @_includePaths.push p for p in paths
     @
   # Test definitions:
   # tests =
