@@ -8,7 +8,7 @@
     { "name": "Mason Browne", "email": "mason@massivelyfun.com"},
     {"name": "Grant Goodale", "email": "grant@massivelyfun.com"}
   ],
-  "homepage": "http://massivelyfun.com/projects/mf-tools",
+  "homepage": "http://github.com/massivelyfun/mf-tools",
   "repository": {
     "type": "git",
     "url": "git://github.com/massivelyfun/mf-tools.git"
