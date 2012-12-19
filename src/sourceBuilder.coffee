@@ -1,6 +1,8 @@
 {exec} = require "child_process"
 path = require "path"
+fs = require 'fs'
 glob = require "glob"
+existsSync = fs.existsSync || path.existsSync
 
 run = (command, cb = (->)) ->
   exec command,
@@ -46,9 +48,9 @@ class Builder
     libraryOutputDir = path.join(@_absoluteOutputDir, @_libName)
     console.log "Output dir for compilation: #{libraryOutputDir}"
     run "mkdir -p #{libraryOutputDir}", (err, stdout, stderr) =>
-      srcDirsToInclude = (dir for dir in @_absoluteInputDirs when path.existsSync(dir))
+      srcDirsToInclude = (dir for dir in @_absoluteInputDirs when existsSync(dir))
       console.log "Input dirs for compilation: #{srcDirsToInclude}"
-      if path.existsSync(libraryOutputDir) and srcDirsToInclude.length > 0
+      if existsSync(libraryOutputDir) and srcDirsToInclude.length > 0
 
         for coffeeSourceDir in srcDirsToInclude
           do(coffeeSourceDir) =>
