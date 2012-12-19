@@ -1,9 +1,13 @@
 {
-  "private": true,
-  "author": "Mason Browne <mason@massivelyfun.com> (http://massivelyfun.com/people/maseb)",
   "name": "mf-tools",
   "description": "Build and test tools.",
   "version": "0.1.0",
+  "author": "Mason Browne <mason@massivelyfun.com>",
+  "contributors": [
+    { "name": "Dean Hudson", "email": "dean@massivelyfun.com"},
+    { "name": "Mason Browne", "email": "mason@massivelyfun.com"},
+    {"name": "Grant Goodale", "email": "grant@massivelyfun.com"}
+  ],
   "homepage": "http://massivelyfun.com/projects/mf-tools",
   "repository": {
     "type": "git",
