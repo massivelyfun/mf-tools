@@ -98,7 +98,7 @@ class TestBuilder
           # console.log "\n#{msg}\n==========================="
           util.puts stdout  # verbiage
           console.log stderr  # test summary
-        @_retVal = 1 if err != null
+          @_retVal = 1 if err != null
         if @_mochaReporter == 'xunit'
           fs.mkdirSync('reports') unless fs.readdirSync('.').indexOf('reports') >= 0
           outFile = fs.createWriteStream "reports/#{file.replace(/^.*[\\\/]/, '')}.xml", { flags : 'w' }
