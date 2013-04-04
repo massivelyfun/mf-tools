@@ -1,7 +1,7 @@
 {
   "name": "mf-tools",
   "description": "Build and test tools.",
-  "version": "0.1.4",
+  "version": "0.1.6",
   "author": "Mason Browne <mason@massivelyfun.com>",
   "contributors": [
     {"name": "Dean Hudson", "email": "dean@massivelyfun.com"},
