@@ -1,0 +1,10 @@
+{
+  "version": 3,
+  "file": "group.js",
+  "sourceRoot": "../../..",
+  "sources": [
+    "src/test/group.coffee"
+  ],
+  "names": [],
+  "mappings": ";AAMA;CAAA,CAAA,CAAgB,EAAhB,EAAO,EAAU;CACf,OAAA;;CAAA,CAAW,CAAP,CAAJ,KAAK;CACH,EAAA,CAAA,EAAA,CAAO,eAAM;CACV,CAAA,CAAU,CAAV,GAAA,MAAH;CAFF,IAAI;CAAJ,EAGA,CAAA,GAAO,EAAP,SAAa;CACT,EAAJ,QAAA;CALF,EAAgB;CAAhB"
+}
