@@ -26,10 +26,9 @@ class Builder
     @_absoluteOutputDir = null
     @_buildName = "unknown"
 
-  libraryName: (@_libName) ->
-    @
-  buildName: (@_buildName) ->
-    @
+  libraryName: (@_libName) -> @
+  buildName: (@_buildName) -> @
+  sourceMap: (@_enableSourceMaps = true) -> @
   outputDir: (@_outputDir) ->
     @_absoluteOutputDir = path.join(@_projectRoot, @_outputDir)
     @
@@ -40,6 +39,7 @@ class Builder
         @_inputDirs.push dir
         @_absoluteInputDirs.push path.join(@_projectRoot, dir)
     @
+
   build: ->
     unless @_libName
       throw new Error("Library name required!")
@@ -54,8 +54,10 @@ class Builder
 
         for coffeeSourceDir in srcDirsToInclude
           do(coffeeSourceDir) =>
-            console.log "coffee -o #{libraryOutputDir} -c #{coffeeSourceDir}"
-            run "coffee -o #{libraryOutputDir} -c #{coffeeSourceDir}", (err, stdout, stderr) =>
+            args = ['-o', libraryOutputDir, '-c', coffeeSourceDir]
+            args.unshift('-m') if @_enableSourceMaps
+            console.log "coffee #{args.join(' ')}"
+            run "coffee #{args.join(' ')}", (err, stdout, stderr) =>
               # Then, copy .js files from each of the input dirs, and overlay them appropriately on the output
               for dir in @_inputDirs
                 do (dir) =>
