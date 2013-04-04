@@ -13,6 +13,7 @@ task "build", "Convert CoffeeScript sources into JS files", ->
       .buildName(build)
       .outputDir(build)
       .inputDirs((dir for dir in dirs)...)
+      .sourceMap(true)
       .build()
 
 testBuilder = new TestBuilder()
