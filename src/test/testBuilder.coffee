@@ -60,6 +60,18 @@ class TestBuilder
   setGlobals: (globals...) ->
     @_globals.push g for g in globals
     @    
+
+  _getAllTestFiles: ->
+    allFiles = []
+    for test, testGlob of @_testDefinitions
+      currentFiles = glob.sync testGlob
+      allFiles = allFiles.concat currentFiles
+
+    allFiles
+
+  runTogether: ->
+    @_runTogether = true
+    @
   # Test definitions:
   # tests =
   #   taskName: "test/glob/*.test.coffee"
@@ -76,39 +88,56 @@ class TestBuilder
     @_task "test", "Run all tests", =>
       process.on 'exit', () =>
         process.reallyExit @retVal()
-      for t of @_testDefinitions
-        do (t) ->
-          invoke "test:#{t}"
+      if @_runTogether
+        @_runTests(@_getAllTestFiles(), 'Starting all tests...')
+      else
+        for t of @_testDefinitions
+          do (t) ->
+            invoke "test:#{t}"
     @
   _testCmd: ->
     "NODE_PATH=$NODE_PATH:#{@_includePaths.join ':'} mocha --globals #{@_globals.join ','} -u #{@_mochaUi} -R #{@_mochaReporter} --require #{@_mochaPreRequire()}"
 
   # Run our test.  If we're running in xunit output mode, we want to write each test file's
   # output to a separate file, so that xunit doesn't freak out.
-  _runTests: (testGlob, msg) ->
+  _runTests: (files, msg) ->
+    if @_runTogether
+      @_runTestProcess(files, msg)
+    else
+      # Run each file/test in a seperate process
+      for file in files
+        @_runTestProcess([file], msg)
+    return
+
+  # Run tests in mocha.  If we're running in xunit output mode, we want to write each test file's
+  # output to a separate file, so that xunit doesn't freak out.
+  _runTestProcess: (files, msg) ->
     childEnv = {}
     childEnv[k] = v for k,v of process.env
     childEnv["NODE_ENV"] ?= (@_env ? "test")
-    glob testGlob, (err, files) =>
-      for file in files
-        child = exec "#{@_testCmd()} #{file}",
-          env: childEnv
-          encoding: 'utf8'
-        , (err, stdout, stderr) =>
-          # console.log "\n#{msg}\n==========================="
-          util.puts stdout  # verbiage
-          console.log stderr  # test summary
-          @_retVal = 1 if err != null
-        if @_mochaReporter == 'xunit'
-          fs.mkdirSync('reports') unless fs.readdirSync('.').indexOf('reports') >= 0
-          outFile = fs.createWriteStream "reports/#{file.replace(/^.*[\\\/]/, '')}.xml", { flags : 'w' }
-          child.stdout.pipe(outFile)
-          
+    child = exec "#{@_testCmd()} #{files.join(' ')}",
+      env: childEnv
+      encodig: 'utf8'
+    , (err, stdout, stderr) =>
+      # console.log "\n#{msg}\n==========================="
+      util.puts stdout  # verbiage
+      console.log stderr  # test summary
+      @_retVal = 1 if err != null
+    if @_mochaReporter == 'xunit'
+      file = files[0] # Use first file for report filename
+      fs.mkdirSync('reports') unless fs.readdirSync('.').indexOf('reports') >= 0
+      outFile = fs.createWriteStream "reports/#{file.replace(/^.*[\\\/]/, '')}.xml", { flags : 'w' }
+      child.stdout.pipe(outFile)
+
   _addTestTask: (name, dir) ->
     taskName = "test:#{name}"
 
     @_task "#{taskName}", "Run units on #{name}", =>
-      @_runTests dir, "Starting #{name} tests..."
+      glob dir, (err, files) =>
+        if err?
+          @_retVal = 1
+          return
+        @_runTests files, "Starting #{name} tests..."
 
   retVal: ->
     @_retVal
